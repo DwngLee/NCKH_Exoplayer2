@@ -71,17 +71,6 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
     this.queue_size = input_queue_size;
   }
 
-  public float predictNextBandwidth() {
-    // get input
-    float[] input_array = new float[this.queue_size];
-    int i = 0;
-    for (Float f : this.mbps_queue)
-      input_array[i++] = (f != null ? f : 0);
-
-    // predict and return result
-    return this.model.predict(input_array);
-  }
-
   @Override
   public synchronized void onTransferStart(Object source, DataSpec dataSpec) {
     if (streamCount == 0) {
@@ -111,17 +100,8 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
 
     if (sampleElapsedTimeMs > 0) {
 
-      float bitsPerSecond = sampleBytesTransferred * 8000.0f / sampleElapsedTimeMs;
+      float bitsPerSecond = sampleBytesTransferred * 8000.0f / sampleElapsedTimeMs; //8000 = 8 * 1000 (bit to Byte and ms to s
       Log.e("datalog_model::", String.format("\t%s\t%s\t%s",sampleBytesTransferred, sampleElapsedTimeMs, bitsPerSecond));
-      // MODEL - Get data
-//      // remove oldest value(s) in queue
-      while (mbps_queue.size() >= queue_size) {
-        mbps_queue.remove();
-      }
-      // add new value to queue
-      while (mbps_queue.size() < queue_size) {
-        mbps_queue.add((float) sampleBytesTransferred / (1024*1024));
-      }
 
       Log.e("data_inputmodel::", String.format("\t%s\t%s\t%s",(float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8)));
       Logger.logBitrateData((float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8));
@@ -131,8 +111,8 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
       slidingPercentile.addSample((int) Math.sqrt(sampleBytesTransferred), bitsPerSecond_Exo);
 
       // predict next value
-      if ((totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE
-          || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) && mbps_queue.size() >= queue_size) {
+      if (totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE
+          || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) {
 
          // EXO - predict
         float bitrateEstimateFloat = slidingPercentile.getPercentile(0.5f);
@@ -140,15 +120,8 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
         if (Float.isNaN(bitrateEstimateFloat))
           bitrateEstimateFloat = 0.0f;
         long bitrateEstimate_Exo = (long)bitrateEstimateFloat;
-//        this.bitrateEstimate = (long)bitrateEstimateFloat;
-
-//        Log.e("bitratelogexo::", String.format("\t%s\t%s",bitsPerSecond_Exo, bitrateEstimate_Exo));
-
-        // MODEL - predict and convert from mbps to bps
-        long  bitratePred = (long) ((this.predictNextBandwidth())  * (8 * 1024 * 1024));
-        this.bitrateEstimate = bitratePred;
-        Log.e("model_pred::", String.format("\t%s", this.predictNextBandwidth()));
-        Log.e("bitratelogtest::", String.format("\t%s\t%s\t%s",bitsPerSecond, this.bitrateEstimate, bitrateEstimate_Exo));
+        this.bitrateEstimate = bitrateEstimate_Exo;
+        Log.e("birate_bps::", bitsPerSecond + " " + bitrateEstimate_Exo);
 
       }
     }

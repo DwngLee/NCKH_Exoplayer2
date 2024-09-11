@@ -286,7 +286,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     this.minDurationForQualityIncreaseUs = minDurationForQualityIncreaseMs * 1000L;
     this.maxDurationForQualityDecreaseUs = maxDurationForQualityDecreaseMs * 1000L;
     this.minDurationToRetainAfterDiscardUs = minDurationToRetainAfterDiscardMs * 1000L;
-    this.bandwidthFraction = bandwidthFraction;
+    this.bandwidthFraction = bandwidthFraction; //Tỷ lệ chính xác của hàm predict băng thông
     this.bufferedFractionToLiveEdgeForQualityIncrease =
         bufferedFractionToLiveEdgeForQualityIncrease;
     this.minTimeBetweenBufferReevaluationMs = minTimeBetweenBufferReevaluationMs;
@@ -299,8 +299,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
   }
 
   public double newQoeFormular(
-          long bitrateChunk, // bitrate cua doan chunk
-          long effectiveBitrate, // bitrate du doan
+          long oldIndexBitrate, // bitrate cua doan chunk
+          long newIndexBitrate, // bitrate du doan
           long bufferedDurationUs, // bo dem theo giay
           long bitrateEstimate, // bitrate cua mang
           long timeAChunk // thoi gian cua mot doan chunk
@@ -309,16 +309,16 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     double M = 1;
     double T = 3000;
 
-    double differentBitrate = Math.abs(effectiveBitrate - bitrateChunk); // do khac biet ve bitrate
+    double differentBitrate = Math.abs(newIndexBitrate - oldIndexBitrate); // do khac biet ve bitrate
 
-    double timeRebuffering = timeAChunk * bitrateChunk/bitrateEstimate - bufferedDurationUs;// thoi gian nap lai bo dem
+    double timeRebuffering = timeAChunk * oldIndexBitrate/bitrateEstimate - bufferedDurationUs;// thoi gian nap lai bo dem
 
     if(timeRebuffering < 0){ // neu gia tri nho hon 0 tuc la khong bi rebuffering
       timeRebuffering = 0;
     }
 
 
-    double QoE = bitrateChunk - M * differentBitrate - T * timeRebuffering;
+    double QoE = oldIndexBitrate - M * differentBitrate - T * timeRebuffering;
 
     Log.i("QoE","QoE: " + QoE);
 
@@ -353,7 +353,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     int currentSelectedIndex = selectedIndex;
     //selectedIndex = determineIdealSelectedIndex(nowMs);
     //Tien: su dung ham nay de lay thong tin ve buffer
-    //selectedIndex = determineIdealSelectedIndex_org(nowMs,currentSelectedIndex,bufferedDurationUs);
+//    selectedIndex = determineIdealSelectedIndex_org(nowMs,currentSelectedIndex,bufferedDurationUs);
     //QoE tham khao
     selectedIndex = determineIdealSelectedIndex_refQoE(nowMs,currentSelectedIndex,bufferedDurationUs);
     //QoE de xuat:
@@ -498,13 +498,17 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     for (int i = 0; i < length; i++) {
       if (nowMs == Long.MIN_VALUE || !isBlacklisted(i, nowMs)) {
         Format format = getFormat(i);
-        // System.out.println("format::"+format);
         if (Math.round(format.bitrate * playbackSpeed) <= effectiveBitrate) {
-          Format fm = getFormat(i);
-          double T = fm.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
-          double QoE = fm.bitrate / 1000 - M * T * 100 - Math.abs(fm.bitrate / 1000 - currentFormat.bitrate / 1000);
-          Log.e("lowestBitrateAllowed", "\t" + String.valueOf(i) + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE));
-          //Log.e("bitrateEstimate0\t ",String.valueOf(i));
+          Format newFormat = getFormat(i);
+          double T = newFormat.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
+          double QoE = newFormat.bitrate / 1000 - M * T * 100 - Math.abs(newFormat.bitrate / 1000 - currentFormat.bitrate / 1000);
+          double newQoe = newQoeFormular(
+                  currentFormat.bitrate,
+                  newFormat.bitrate,
+                  bufferedDurationUs/1000000,
+                  bitrateEstimate,
+                  2);
+          Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  newFormat.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
           return i;
         }
         else {
@@ -512,17 +516,16 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
         }
       }
     }
-    Format fm = getFormat(lowestBitrateNonBlacklistedIndex);
-    double T = fm.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
-    double QoE = fm.bitrate / 1000 - M * T * 100 - Math.abs(fm.bitrate / 1000 - currentFormat.bitrate / 1000);
+    Format newFormat = getFormat(lowestBitrateNonBlacklistedIndex);
+    double T = newFormat.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
+    double QoE = newFormat.bitrate / 1000 - M * T * 100 - Math.abs(newFormat.bitrate / 1000 - currentFormat.bitrate / 1000);
     double newQoe = newQoeFormular(
-            fm.bitrate*1000,
-            effectiveBitrate*1000,
-            bufferedDurationUs/1000,
-            bitrateEstimate*1000,
-            2*1000);
-    Log.e("lowestBitrateAllowed", "\t" + lowestBitrateNonBlacklistedIndex + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE)); //#TO DO: change from Qoe to newQoe
-//    QoeLogger.logBitrateData(lowestBitrateNonBlacklistedIndex, bufferedDurationUs, Math.round(newQoe));
+            currentFormat.bitrate,
+            newFormat.bitrate,
+            bufferedDurationUs/1000000,
+            bitrateEstimate,
+            2);
+    Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  newFormat.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
     return lowestBitrateNonBlacklistedIndex;
   }
 
@@ -550,6 +553,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
         else
           M=M*2;
       }
+
       if (nowMs == Long.MIN_VALUE || !isBlacklisted(i, nowMs)) {
         Format format = getFormat(i);
         // System.out.println("format::"+format);
@@ -561,8 +565,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
             QoEmax = QoE;
             indexSelected=i;
           }
-          Log.e("lowestBitrateAllowed", "\t" + String.valueOf(indexSelected) + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE));
-          //Log.e("bitrateEstimate0\t ",String.valueOf(i));
+          Format newFormat = getFormat(indexSelected);
+          Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  newFormat.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
           return indexSelected;
         } else {
           lowestBitrateNonBlacklistedIndex = i;
@@ -572,7 +576,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     Format fm = getFormat(lowestBitrateNonBlacklistedIndex);
     double T = fm.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
     double QoE = fm.bitrate / 1000 - M * T * 100 - Math.abs(fm.bitrate / 1000 - currentFormat.bitrate / 1000);
-    Log.e("lowestBitrateAllowed", "\t" + lowestBitrateNonBlacklistedIndex + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE));
+    Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  fm.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
     return lowestBitrateNonBlacklistedIndex;
   }
 
@@ -587,7 +591,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     double QoEmax=0;
     int indexSelected=0;
     Format currentFormat = getFormat(previousSelectedIndex);
-    //Log.e("length:::",String.valueOf(length));
     for (int i = 0; i < length; i++) {
       if (nowMs == Long.MIN_VALUE || !isBlacklisted(i, nowMs)) {
         Format format = getFormat(i);
