@@ -134,6 +134,7 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
       if ((totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE
           || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) && mbps_queue.size() >= queue_size) {
 
+
          // EXO - predict
         float bitrateEstimateFloat = slidingPercentile.getPercentile(0.5f);
 //         check if new value is valid
