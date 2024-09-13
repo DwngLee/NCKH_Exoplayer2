@@ -1,7 +1,6 @@
-package com.google.android.exoplayer2.demo.models;
+package com.google.android.exoplayer2.demo.services;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.pytorch.IValue;
 import org.pytorch.LiteModuleLoader;

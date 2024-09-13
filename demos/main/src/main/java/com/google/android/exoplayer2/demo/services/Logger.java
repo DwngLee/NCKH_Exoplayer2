@@ -1,16 +1,11 @@
-package com.google.android.exoplayer2.demo.models;
+package com.google.android.exoplayer2.demo.services;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class Logger {
     private static final String FILE_NAME = "bitrate_data.csv";

@@ -61,9 +61,11 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.demo.custom_bandwidth_meter.PredictiveBandwidthMeter;
-import com.google.android.exoplayer2.demo.models.BandwidthTorchRecurrentModel;
-import com.google.android.exoplayer2.demo.models.BaseBandwidthPredictionModel;
-import com.google.android.exoplayer2.demo.models.Logger;
+import com.google.android.exoplayer2.demo.models.VideoPlaybackData;
+import com.google.android.exoplayer2.demo.services.BandwidthTorchRecurrentModel;
+import com.google.android.exoplayer2.demo.services.BaseBandwidthPredictionModel;
+import com.google.android.exoplayer2.demo.services.Logger;
+import com.google.android.exoplayer2.demo.services.VideoQualityTracker;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
@@ -132,6 +134,7 @@ public class PlayerActivity extends Activity
   private static final String DRM_SCHEME_UUID_EXTRA = "drm_scheme_uuid";
   private static final CookieManager DEFAULT_COOKIE_MANAGER;
 
+
   static {
     DEFAULT_COOKIE_MANAGER = new CookieManager();
     DEFAULT_COOKIE_MANAGER.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
@@ -181,19 +184,22 @@ public class PlayerActivity extends Activity
 
   // Model
   private BaseBandwidthPredictionModel ml_model;
-
   private final String model_path ="bandwidth_predictor_mobile.ptl";
   private final long []model_input_shape = {5, 1, 1};
   private long bitrateEstimate;
 
-
+  //logging
   private final String log_tag = "PlayerActivity log";
+
+  //tracking
+  private VideoQualityTracker qualityTracker;
+
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    //create file log
+    //create file log for bitrate
     Logger.init(getFilesDir());
     System.out.println("dir: " + getFilesDir());
 
@@ -219,7 +225,7 @@ public class PlayerActivity extends Activity
         input_length
     );
 
-    shouldAutoPlay = true;
+    shouldAutoPlay = false;
     clearResumePosition();
     mediaDataSourceFactory = buildDataSourceFactory(true);
     mainHandler = new Handler();
@@ -300,6 +306,13 @@ public class PlayerActivity extends Activity
   @Override
   public void onDestroy() {
     super.onDestroy();
+    // Get the collected data
+    VideoPlaybackData playbackData = qualityTracker.getPlaybackData();
+
+    // You can now use this data as needed, e.g., send to a server, save to a file, etc.
+    Log.i("Collected data:",playbackData.toString());
+
+    qualityTracker.release();
     releaseAdsLoader();
     ml_model.close();
   }
@@ -432,7 +445,7 @@ public class PlayerActivity extends Activity
       player.setRepeatMode(Player.REPEAT_MODE_ALL);
 
 
-      //eventLogger = new EventLogger(trackSelector);
+      eventLogger = new EventLogger(trackSelector);
       player.addAudioDebugListener(eventLogger);
       player.addVideoDebugListener(new VideoRendererEventListener(){
 
@@ -473,6 +486,9 @@ public class PlayerActivity extends Activity
       });
       player.addMetadataOutput(eventLogger);
       player.addListener(eventLogger);
+
+      //Khởi tạo tracker
+      qualityTracker = new VideoQualityTracker(player);
 
       playerView.setPlayer(player);
       player.setPlayWhenReady(shouldAutoPlay);
@@ -532,6 +548,7 @@ public class PlayerActivity extends Activity
         player.seekTo(resumeWindow, resumePosition);
       }
       player.prepare(mediaSource, !haveResumePosition, false);
+
       inErrorState = false;
       updateButtonVisibilities();
     }

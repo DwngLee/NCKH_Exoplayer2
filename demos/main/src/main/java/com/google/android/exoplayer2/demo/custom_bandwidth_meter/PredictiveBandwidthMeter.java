@@ -3,8 +3,8 @@ package com.google.android.exoplayer2.demo.custom_bandwidth_meter;
 import android.os.Handler;
 import android.util.Log;
 
-import com.google.android.exoplayer2.demo.models.BaseBandwidthPredictionModel;
-import com.google.android.exoplayer2.demo.models.Logger;
+import com.google.android.exoplayer2.demo.services.BaseBandwidthPredictionModel;
+import com.google.android.exoplayer2.demo.services.Logger;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSpec;

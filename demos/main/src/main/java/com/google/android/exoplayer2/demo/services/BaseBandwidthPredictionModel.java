@@ -1,4 +1,4 @@
-package com.google.android.exoplayer2.demo.models;
+package com.google.android.exoplayer2.demo.services;
 
 public interface BaseBandwidthPredictionModel {
   /**
