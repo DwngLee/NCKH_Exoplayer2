@@ -561,8 +561,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
             QoEmax = QoE;
             indexSelected=i;
           }
-          Log.e("lowestBitrateAllowed", "\t" + String.valueOf(indexSelected) + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE));
-          //Log.e("bitrateEstimate0\t ",String.valueOf(i));
+          Format newFormat = getFormat(indexSelected);
+          Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  newFormat.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
           return indexSelected;
         } else {
           lowestBitrateNonBlacklistedIndex = i;
@@ -572,7 +572,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     Format fm = getFormat(lowestBitrateNonBlacklistedIndex);
     double T = fm.bitrate * 2 / effectiveBitrate - bufferedDurationUs / 1000000;
     double QoE = fm.bitrate / 1000 - M * T * 100 - Math.abs(fm.bitrate / 1000 - currentFormat.bitrate / 1000);
-    Log.e("lowestBitrateAllowed", "\t" + lowestBitrateNonBlacklistedIndex + "\t" + (bufferedDurationUs) + "\t" + Math.round(QoE));
+    Log.e("qoe value::", "\t" + currentFormat.bitrate + "\t" +  fm.bitrate + "\t" + (bufferedDurationUs/1000000) + "\t" + Math.round(QoE));
     return lowestBitrateNonBlacklistedIndex;
   }
 
