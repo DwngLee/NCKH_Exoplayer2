@@ -351,11 +351,11 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     long nowMs = clock.elapsedRealtime();
     // Stash the current selection, then make a new one.
     int currentSelectedIndex = selectedIndex;
-    //selectedIndex = determineIdealSelectedIndex(nowMs);
+    selectedIndex = determineIdealSelectedIndex(nowMs);
     //Tien: su dung ham nay de lay thong tin ve buffer
 //    selectedIndex = determineIdealSelectedIndex_org(nowMs,currentSelectedIndex,bufferedDurationUs);
     //QoE tham khao
-    selectedIndex = determineIdealSelectedIndex_refQoE(nowMs,currentSelectedIndex,bufferedDurationUs);
+//    selectedIndex = determineIdealSelectedIndex_refQoE(nowMs,currentSelectedIndex,bufferedDurationUs);
     //QoE de xuat:
     //selectedIndex = determineIdealSelectedIndex_prop(nowMs,currentSelectedIndex,bufferedDurationUs);
 
