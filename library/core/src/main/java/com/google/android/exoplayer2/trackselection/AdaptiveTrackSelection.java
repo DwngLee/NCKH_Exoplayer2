@@ -381,7 +381,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
         // The selected track is a lower quality, but we have sufficient buffer to defer switching
         // down for now.
         selectedIndex = currentSelectedIndex;
-        //System.out.println("nhanh");
       }
     }
     // If we adapted, update the trigger.
@@ -390,10 +389,9 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
       reason = C.SELECTION_REASON_ADAPTIVE;
     }
   }
-//co dung
+
   @Override
   public int getSelectedIndex() {
-    System.out.println("nhanh14::");
     return selectedIndex;
   }
 
