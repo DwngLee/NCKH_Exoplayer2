@@ -4,6 +4,7 @@ gen
 libs
 obj
 lint.xml
+*.hprof
 
 # IntelliJ IDEA
 .idea
