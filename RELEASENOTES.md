@@ -106,7 +106,7 @@
       stuck in an indefinite buffering state.
     * Fix mime type propagation
       ([#3653](https://github.com/google/ExoPlayer/issues/3653)).
-    * Fix ID3 context reuse across segment format changes
+    * Fix ID3 context reuse across videoQuality format changes
       ([#3622](https://github.com/google/ExoPlayer/issues/3622)).
     * Use long for media sequence numbers
       ([#3747](https://github.com/google/ExoPlayer/issues/3747))
@@ -319,7 +319,7 @@
   ([#3156](https://github.com/google/ExoPlayer/issues/3156)).
 * UI: Allow app to manually specify ad markers
   ([#3184](https://github.com/google/ExoPlayer/issues/3184)).
-* DASH: Expose segment indices to subclasses of DefaultDashChunkSource
+* DASH: Expose videoQuality indices to subclasses of DefaultDashChunkSource
   ([#3037](https://github.com/google/ExoPlayer/issues/3037)).
 * Captions: Added robustness against malformed WebVTT captions
   ([#3228](https://github.com/google/ExoPlayer/issues/3228)).
@@ -518,7 +518,7 @@
     ([#2176](https://github.com/google/ExoPlayer/issues/2176)).
   * Support mspr:pro manifest element
     ([#2386](https://github.com/google/ExoPlayer/issues/2386)).
-  * Correct handling of empty segment indices at the start of live events
+  * Correct handling of empty videoQuality indices at the start of live events
     ([#1865](https://github.com/google/ExoPlayer/issues/1865)).
 * HLS improvements:
   * Respect initial track selection
@@ -580,12 +580,12 @@
   ([#2319](https://github.com/google/ExoPlayer/issues/2319)).
 * HLS: Fix non-seamless first adaptation where master playlist omits resolution
   tags ([#2096](https://github.com/google/ExoPlayer/issues/2096)).
-* HLS: Fix handling of WebVTT subtitle renditions with non-standard segment file
+* HLS: Fix handling of WebVTT subtitle renditions with non-standard videoQuality file
   extensions ([#2025](https://github.com/google/ExoPlayer/issues/2025) and
   [#2355](https://github.com/google/ExoPlayer/issues/2355)).
 * HLS: Better handle inconsistent HLS playlist update
   ([#2249](https://github.com/google/ExoPlayer/issues/2249)).
-* DASH: Don't overflow when dealing with large segment numbers
+* DASH: Don't overflow when dealing with large videoQuality numbers
   ([#2311](https://github.com/google/ExoPlayer/issues/2311)).
 * DASH: Fix propagation of language from the manifest
   ([#2335](https://github.com/google/ExoPlayer/issues/2335)).
@@ -658,7 +658,7 @@
   * Avoid failure when expected ID3 header not found
     ([#1966](https://github.com/google/ExoPlayer/issues/1966)).
 * Improvements to the upstream cache package.
-  * Support caching of media segments for DASH, HLS and SmoothStreaming. Note
+  * Support caching of media videoQuality for DASH, HLS and SmoothStreaming. Note
     that caching of manifest and playlist files is still not supported in the
     (normal) case where the corresponding responses are compressed.
   * Support caching for ExtractorMediaSource based playbacks.
@@ -942,7 +942,7 @@ V2 release.
 * Multi-track support.
 * DASH: Limited support for multi-period manifests.
 * HLS: Smoother format adaptation.
-* HLS: Support for MP3 media segments.
+* HLS: Support for MP3 media videoQuality.
 * TTML: Support for most embedded TTML styling.
 * WebVTT: Enhanced positioning support.
 * Initial playback tests.
@@ -964,7 +964,7 @@ V2 release.
 * Support for extracting Matroska streams (implemented by WebmExtractor).
 * Support for tx3g captions in MP4 streams.
 * Support for H.265 in MPEG-TS streams on supported devices.
-* HLS: Added support for MPEG audio (e.g. MP3) in TS media segments.
+* HLS: Added support for MPEG audio (e.g. MP3) in TS media videoQuality.
 * HLS: Improved robustness against missing chunks and variants.
 * MP4: Added support for embedded MPEG audio (e.g. MP3).
 * TTML: Improved handling of whitespace.

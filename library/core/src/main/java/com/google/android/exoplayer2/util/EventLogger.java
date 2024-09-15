@@ -24,6 +24,7 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RendererCapabilities;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
@@ -51,6 +52,9 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /** Logs events from {@link Player} and other core components using {@link Log}. */
@@ -77,13 +81,26 @@ public class EventLogger
   private final Timeline.Window window;
   private final Timeline.Period period;
   private final long startTimeMs;
+  private long stallStartTime = -1;
+
+  private VideoSegments I13;
+  private StallingTimeInfo I23;
+  private AudioSegments I11;
 
   public EventLogger(MappingTrackSelector trackSelector) {
     this.trackSelector = trackSelector;
     window = new Timeline.Window();
     period = new Timeline.Period();
     startTimeMs = SystemClock.elapsedRealtime();
+
+    List<VideoQuality> videoQualityList = new ArrayList<>();
+    List<AudioQuality> audioQualityList = new ArrayList<>();
+    List<List<Double>> stallingList = new ArrayList<>();
+    this.I13 = new VideoSegments(videoQualityList, 42);
+    this.I23 = new StallingTimeInfo(stallingList, 42);
+    this.I11 = new AudioSegments(audioQualityList, 42);
   }
+  private SimpleExoPlayer player;
 
   // Player.EventListener
 
@@ -95,7 +112,27 @@ public class EventLogger
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int state) {
     Log.d(TAG, "state [" + getSessionTimeString() + ", " + playWhenReady + ", "
-        + getStateString(state) + "]");
+        + getStateString(state) + "]"); //session Time là thời điểm phát trong video
+
+    if (state == Player.STATE_BUFFERING) { //Tìm thời điểm xảy ra rebuffering
+      if (stallStartTime == -1) {
+        stallStartTime = System.currentTimeMillis();
+      }
+    } else if (state == Player.STATE_READY) {
+      if (stallStartTime != -1) { //Khi hết rebuffering thì sẽ tính duration
+        Long stallDuration = (System.currentTimeMillis() - stallStartTime);
+        //#TODO: viết lại cho clear hơn
+        Double stallingAt = Double.parseDouble(getSessionTimeString());
+        if(stallingAt < 0){
+          stallingAt = 0.0;
+        }
+        I23.getStalling().add(Arrays.asList(stallingAt, stallDuration.doubleValue()/1000));
+
+        System.out.println("Stalling occur at: " + getSessionTimeString() + ", duration: " + stallDuration/1000);
+        stallStartTime = -1;
+      }
+    }
+
   }
 
   @Override
@@ -358,12 +395,34 @@ public class EventLogger
     // Do nothing.
   }
 
+  //Được gọi khi segment được tải xuống thành công và nạp vào trong buffer
   @Override
-  public void onLoadCompleted(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
+  public void onLoadCompleted(DataSpec dataSpec, int dataType, int trackType, Format trackFormat, //dataType = 1: Media, tìm hiểu thêm các enum C.DataType ở đây: https://developer.android.com/reference/androidx/media3/common/C#DATA_TYPE_MEDIA()
       int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
       long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
     // Do nothing.
-
+    long segmentDuration = mediaEndTimeMs - mediaStartTimeMs;
+    long timeStamp = mediaStartTimeMs < 0 ? 0 : mediaStartTimeMs;
+    if(trackFormat != null && trackType == 2 && segmentDuration > 0){ //Tracktype = 2: Video, tìm hiểu thêm các enum C.TrackType ở đây: https://developer.android.com/reference/androidx/media3/common/C#TRACK_TYPE_UNKNOWN()
+      VideoQuality videoQuality = new VideoQuality(
+              trackFormat.bitrate/1000,
+             "h264", //Default codec in itu p1203
+              segmentDuration/1000,
+              trackFormat.frameRate,
+              trackFormat.width + "x" + trackFormat.height,
+              timeStamp / 1000
+      );
+      I13.getVideoQualityList().add(videoQuality);
+      Log.i("Load completed:", String.valueOf(dataType) + " " + String.valueOf(trackType) + " " + videoQuality);
+    }else if(trackFormat != null && trackType == 1 && segmentDuration > 0){
+      AudioQuality audioQuality = new AudioQuality(
+              trackFormat.bitrate/1000,
+              "aaclc",
+              segmentDuration/1000,
+              timeStamp/1000
+      );
+      I11.getSegments().add(audioQuality);
+    }
   }
 
   @Override
@@ -555,6 +614,11 @@ public class EventLogger
       default:
         return "?";
     }
+  }
+
+  public VideoPlaybackData getPlaybackData(){
+    VideoPlaybackData data = new VideoPlaybackData(I13, I23, I11);
+    return data;
   }
 
 }

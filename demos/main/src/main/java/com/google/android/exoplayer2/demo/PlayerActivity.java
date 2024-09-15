@@ -61,9 +61,9 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.demo.custom_bandwidth_meter.PredictiveBandwidthMeter;
-import com.google.android.exoplayer2.demo.models.VideoPlaybackData;
 import com.google.android.exoplayer2.demo.services.BandwidthTorchRecurrentModel;
 import com.google.android.exoplayer2.demo.services.BaseBandwidthPredictionModel;
+import com.google.android.exoplayer2.demo.services.FileService;
 import com.google.android.exoplayer2.demo.services.Logger;
 import com.google.android.exoplayer2.demo.services.VideoQualityTracker;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
@@ -100,6 +100,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.EventLogger;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.util.VideoPlaybackData;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.lang.ref.WeakReference;
@@ -263,6 +264,13 @@ public class PlayerActivity extends Activity
 
   }
 
+  private void savePlaybackData() {
+    VideoPlaybackData playbackData = eventLogger.getPlaybackData();
+    String jsonData = playbackData.toJson();
+    String fileName = FileService.generateFileName();
+    FileService.saveJsonToFile(this, jsonData, fileName);
+  }
+
   @Override
   public void onNewIntent(Intent intent) {
     releasePlayer();
@@ -298,20 +306,19 @@ public class PlayerActivity extends Activity
   @Override
   public void onStop() {
     super.onStop();
+    Log.i("Collected data:",eventLogger.getPlaybackData().toJson());
+    savePlaybackData();
     if (Util.SDK_INT > 23) {
       releasePlayer();
+
     }
   }
 
   @Override
   public void onDestroy() {
     super.onDestroy();
-    // Get the collected data
-    VideoPlaybackData playbackData = qualityTracker.getPlaybackData();
 
-    // You can now use this data as needed, e.g., send to a server, save to a file, etc.
-    Log.i("Collected data:",playbackData.toString());
-
+    Log.i("Collected data:",eventLogger.getPlaybackData().toJson());
     qualityTracker.release();
     releaseAdsLoader();
     ml_model.close();

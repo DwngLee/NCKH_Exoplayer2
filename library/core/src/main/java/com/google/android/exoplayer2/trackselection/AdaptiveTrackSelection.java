@@ -348,6 +348,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
       long availableDurationUs) {
 
     Log.e("availableDurationUs000::", String.valueOf(minDurationForQualityIncreaseUs(availableDurationUs)));
+    Log.e("playBackDuration::", String.valueOf(playbackPositionUs));
     long nowMs = clock.elapsedRealtime();
     // Stash the current selection, then make a new one.
     int currentSelectedIndex = selectedIndex;

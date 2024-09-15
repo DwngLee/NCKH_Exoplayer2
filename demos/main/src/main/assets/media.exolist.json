@@ -490,6 +490,14 @@
             "uri": "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd"
           }
         ]
+      },
+      {
+        "name": "D20PT",
+        "playlist": [
+          {
+            "uri": "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd"
+          }
+        ]
       }
     ]
   },
