@@ -29,6 +29,6 @@ public class FileService {
 
     public static String generateFileName() {
         String timestamp = LocalDateTime.now().toString();
-        return "playback_data_" + timestamp + ".json";
+        return "PREDICT_MODEL_playback_data_" + timestamp + ".json";
     }
 }
