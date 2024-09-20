@@ -120,11 +120,11 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
       }
       // add new value to queue
       while (mbps_queue.size() < queue_size) {
-        mbps_queue.add((float) sampleBytesTransferred / (1024*1024));
+        mbps_queue.add((float) bitsPerSecond / (1024*1024 * 100)); //Do model can chia 100 de chuan hoa
       }
 
       Log.e("data_inputmodel::", String.format("\t%s\t%s\t%s",(float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8)));
-      Logger.logBitrateData((float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8));
+//      Logger.logBitrateData((float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8));
 
       // EXO - Get data
       float bitsPerSecond_Exo = sampleBytesTransferred * 8000.0f / sampleElapsedTimeMs;
@@ -146,7 +146,7 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
 //        Log.e("bitratelogexo::", String.format("\t%s\t%s",bitsPerSecond_Exo, bitrateEstimate_Exo));
 
         // MODEL - predict and convert from mbps to bps
-        long  bitratePred = (long) ((this.predictNextBandwidth())  * (8 * 1024 * 1024));
+        long  bitratePred = (long) ((this.predictNextBandwidth())  * (8 * 1024 * 1024 * 100)); // Nhan voi 100 do ban dau chuan hoa k ve 100
         this.bitrateEstimate = bitratePred;
         Log.e("model_pred::", String.format("\t%s", this.predictNextBandwidth()));
         Log.e("bitratelogtest::", String.format("\t%s\t%s\t%s",bitsPerSecond, this.bitrateEstimate, bitrateEstimate_Exo));

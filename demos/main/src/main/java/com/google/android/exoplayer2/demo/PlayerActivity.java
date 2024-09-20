@@ -185,8 +185,8 @@ public class PlayerActivity extends Activity
 
   // Model
   private BaseBandwidthPredictionModel ml_model;
-  private final String model_path ="bandwidth_predictor_mobile.ptl";
-  private final long []model_input_shape = {5, 1, 1};
+  private final String model_path ="bandwidth_predictor_2_1909.ptl";
+  private final long []model_input_shape = {10, 1, 1};
   private long bitrateEstimate;
 
   //logging
@@ -226,7 +226,7 @@ public class PlayerActivity extends Activity
         input_length
     );
 
-    shouldAutoPlay = false;
+    shouldAutoPlay = true;
     clearResumePosition();
     mediaDataSourceFactory = buildDataSourceFactory(true);
     mainHandler = new Handler();
@@ -274,7 +274,7 @@ public class PlayerActivity extends Activity
   @Override
   public void onNewIntent(Intent intent) {
     releasePlayer();
-    shouldAutoPlay = false;
+    shouldAutoPlay = true;
     clearResumePosition();
     setIntent(intent);
   }

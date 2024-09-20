@@ -405,7 +405,7 @@ public class EventLogger
     long timeStamp = mediaStartTimeMs < 0 ? 0 : mediaStartTimeMs;
     if(trackFormat != null && trackType == 2 && segmentDuration > 0){ //Tracktype = 2: Video, tìm hiểu thêm các enum C.TrackType ở đây: https://developer.android.com/reference/androidx/media3/common/C#TRACK_TYPE_UNKNOWN()
       VideoQuality videoQuality = new VideoQuality(
-              trackFormat.bitrate/1000,
+              trackFormat.bitrate/1024,
              "h264", //Default codec in itu p1203
               segmentDuration/1000,
               trackFormat.frameRate,
@@ -416,7 +416,7 @@ public class EventLogger
       Log.i("Load completed:", String.valueOf(dataType) + " " + String.valueOf(trackType) + " " + videoQuality);
     }else if(trackFormat != null && trackType == 1 && segmentDuration > 0){
       AudioQuality audioQuality = new AudioQuality(
-              trackFormat.bitrate/1000,
+              trackFormat.bitrate/1024,
               "aaclc",
               segmentDuration/1000,
               timeStamp/1000
