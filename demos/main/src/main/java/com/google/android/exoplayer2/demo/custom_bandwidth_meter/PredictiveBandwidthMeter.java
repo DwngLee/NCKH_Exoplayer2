@@ -123,7 +123,7 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
         mbps_queue.add((float) bitsPerSecond / (1024*1024 * 100)); //Do model can chia 100 de chuan hoa
       }
 
-      Log.e("data_inputmodel::", String.format("\t%s\t%s\t%s",(float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8)));
+      Log.e("data_inputmodel::", String.format("\t%s", bitsPerSecond / (1024 * 1024)));
 //      Logger.logBitrateData((float) sampleBytesTransferred/ (1024*1024), (float) sampleElapsedTimeMs/ 1000, bitsPerSecond / (1024 * 1024 * 8));
 
       // EXO - Get data
@@ -148,8 +148,8 @@ public class PredictiveBandwidthMeter implements BandwidthMeter, TransferListene
         // MODEL - predict and convert from mbps to bps
         long  bitratePred = (long) ((this.predictNextBandwidth())  * (8 * 1024 * 1024 * 100)); // Nhan voi 100 do ban dau chuan hoa k ve 100
         this.bitrateEstimate = bitratePred;
-        Log.e("model_pred::", String.format("\t%s", this.predictNextBandwidth()));
-        Log.e("bitratelogtest::", String.format("\t%s\t%s\t%s",bitsPerSecond, this.bitrateEstimate, bitrateEstimate_Exo));
+        Log.e("model_pred::", String.format("\t%s", bitratePred));
+        Log.e("bitratelogtest::", String.format("\t%s,%s,%s",bitsPerSecond / (1024 * 1024), this.bitrateEstimate / (1024 * 1024), bitrateEstimate_Exo / (1024 * 1024)));
 
       }
     }

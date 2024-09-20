@@ -466,7 +466,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
     long effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
         ? maxInitialBitrate : (long) (bitrateEstimate * bandwidthFraction);
     int lowestBitrateNonBlacklistedIndex = 0;
-      //Log.e("length:::",String.valueOf(length));
+      Log.e("index slection",bitrateEstimate + " " + effectiveBitrate);
     for (int i = 0; i < length; i++) {
       if (nowMs == Long.MIN_VALUE || !isBlacklisted(i, nowMs)) {
         Format format = getFormat(i);
